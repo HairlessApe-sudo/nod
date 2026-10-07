@@ -85,18 +85,56 @@ export default function CheckoutForm({
         }
       );
 
-      const result = await response.json();
+const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          result.error ||
-            "Unable to create your order."
-        );
-      }
+if (!response.ok) {
+  throw new Error(
+    result.error ||
+      "Unable to create your order."
+  );
+}
 
-      setSuccess({
-        orderNumber: result.orderNumber,
-      });
+// --------------------------------------------------
+// Create Mollie payment
+// --------------------------------------------------
+
+const paymentResponse = await fetch(
+  "/api/payments/development",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      orderId: result.orderId,
+    }),
+  }
+);
+
+const paymentResult =
+  await paymentResponse.json();
+
+if (!paymentResponse.ok) {
+  throw new Error(
+    paymentResult.error ||
+      "Unable to complete development payment."
+  );
+}
+
+window.location.href =
+  `/checkout/success?order=${encodeURIComponent(
+    paymentResult.orderId
+  )}`;
+
+if (!paymentResult.checkoutUrl) {
+  throw new Error(
+    "Mollie did not return a checkout URL."
+  );
+}
+
+// Send the customer to Mollie.
+window.location.href =
+  paymentResult.checkoutUrl;
     } catch (err) {
       setError(
         err instanceof Error

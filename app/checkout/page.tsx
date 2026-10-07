@@ -62,14 +62,20 @@ export default async function CheckoutPage({
   );
 
   const { data: event, error: eventError } =
-    await supabase
-      .from("events")
-      .select(
-        "id, name, location, starts_at, status"
-      )
-      .eq("id", eventId)
-      .eq("status", "published")
-      .maybeSingle();
+  await supabase
+    .from("events")
+    .select(`
+      id,
+      name,
+      location_name,
+      location_address,
+      starts_at,
+      ends_at,
+      status
+    `)
+    .eq("id", eventId)
+    .eq("status", "published")
+    .maybeSingle();
 
   if (eventError) {
     throw new Error(eventError.message);
